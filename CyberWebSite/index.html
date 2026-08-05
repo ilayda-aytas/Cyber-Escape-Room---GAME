@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Escape Room: Breach Lab</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👾</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-color: #03050d;
+            --card-bg: rgba(8, 14, 28, 0.85);
+            --card-border: rgba(0, 255, 102, 0.25);
+            --accent-color: #00ff66;
+            --accent-cyan: #00f0ff;
+            --text-color: #e2e8f0;
+            --text-muted: #7a8ba0;
+            --danger-color: #ff3366;
+            --warning-color: #ffcc00;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-title: 'Orbitron', sans-serif;
+            --font-ui: 'Rajdhani', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #space-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1020px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 20px 48px;
+        }
+
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title-line {
+            font-family: var(--font-title);
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            line-height: 1.15;
+        }
+
+        .title-line-1 {
+            font-size: clamp(1.6rem, 4.5vw, 2.8rem);
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4), 0 0 30px rgba(0, 255, 102, 0.2);
+        }
+
+        .title-line-2 {
+            font-size: clamp(1.1rem, 3.2vw, 1.9rem);
+            color: var(--accent-color);
+            text-shadow: 0 0 18px rgba(0, 255, 102, 0.6), 0 0 35px rgba(0, 255, 102, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .cursor-blink {
+            display: inline-block;
+            width: 3px;
+            height: 0.9em;
+            background: var(--accent-color);
+            margin-left: 6px;
+            animation: blink 0.85s step-end infinite;
+            box-shadow: 0 0 8px var(--accent-color);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .nav-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .nav-btn {
+            background: rgba(12, 18, 32, 0.88);
+            border: 1px solid var(--accent-cyan);
+            color: #e0e6ed;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        .admin-nav-btn {
+            border-color: rgba(255, 51, 102, 0.5);
+            box-shadow: 0 0 12px rgba(255, 51, 102, 0.15);
+        }
+
+        .admin-nav-btn:hover {
+            background: rgba(255, 51, 102, 0.25);
+            border-color: var(--danger-color);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+        }
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .game-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 16, 30, 0.75);
+            border: 1px solid var(--card-border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .active-player-tag {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .active-player-tag span {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .pause-btn {
+            background: rgba(255, 204, 0, 0.12);
+            border: 1px solid var(--warning-color);
+            color: var(--warning-color);
+            font-family: var(--font-mono);
+            font-weight: bold;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pause-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .pause-btn:hover:not(:disabled) {
+            background: rgba(255, 204, 0, 0.3);
+            box-shadow: 0 0 12px rgba(255, 204, 0, 0.4);
+        }
+
+        #game-container {
+            width: 100%;
+            height: 630px;
+            background: #000;
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 102, 0.25), 0 0 60px rgba(0, 255, 102, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .start-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(3, 6, 16, 0.96);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .start-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .start-card {
+            background: rgba(12, 18, 34, 0.95);
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 0 40px rgba(0, 255, 102, 0.3);
+            border-radius: 12px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .game-brief-box {
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px dashed var(--accent-cyan);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: left;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #d1dbe5;
+        }
+
+        .game-brief-box h4 {
+            color: var(--accent-cyan);
+            font-family: var(--font-title);
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .game-brief-box ul {
+            margin-left: 18px;
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .start-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .start-input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(6, 10, 20, 0.95);
+            border: 1.5px solid var(--accent-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            border-radius: 6px;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .start-input-group input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-color);
+            color: #03050d;
+            border: none;
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.4);
+        }
+
+        .start-btn:hover {
+            background: #26ff7e;
+            box-shadow: 0 0 30px rgba(0, 255, 102, 0.7);
+            transform: translateY(-2px);
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            padding: 24px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        /* MODAL TASARIMLARI */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(2, 4, 10, 0.88);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            width: 92%;
+            max-width: 780px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(0, 255, 102, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--accent-cyan);
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+        .close-btn:hover {
+            color: var(--danger-color);
+            transform: none !important;
+        }
+
+        /* ODA ÇÖZÜMLERİ IZGARASI */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .room-box {
+            background: rgba(12, 18, 34, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .room-box .room-icon { font-size: 1.3rem; }
+        .room-box .room-title {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .room-box:hover, .room-box.active {
+            border-color: var(--accent-color);
+            background: rgba(0, 255, 102, 0.12);
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+            transform: translateY(-2px);
+        }
+        .room-box.active .room-title { color: var(--accent-color); }
+
+        .solution-content-card {
+            background: rgba(4, 8, 18, 0.95);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 18px;
+            font-family: var(--font-mono);
+            min-height: 200px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .solution-content-card h3 {
+            color: var(--accent-color);
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .solution-content-card .step-desc {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .solution-detail-row {
+            margin-bottom: 10px;
+            background: rgba(16, 26, 46, 0.6);
+            padding: 10px 12px;
+            border-left: 3px solid var(--accent-cyan);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .solution-detail-row strong {
+            color: var(--accent-cyan);
+            font-size: 0.82rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .solution-detail-row code {
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .answer-badge {
+            display: inline-block;
+            margin-top: 10px;
+            background: rgba(0, 255, 102, 0.15);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* ADMİN PANELİ STİL */
+        .admin-stat-card {
+            background: rgba(0, 255, 102, 0.05);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .admin-stat-card h3 {
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .admin-stat-card .count-number {
+            font-family: var(--font-title);
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--accent-color);
+            text-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
+        }
+
+        .player-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .player-item {
+            background: rgba(12, 18, 34, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-item::before {
+            content: '👤';
+            font-size: 0.9rem;
+        }
+
+        #admin-login-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input[type="password"], input[type="text"] {
+            flex: 1;
+            padding: 11px 14px;
+            background: rgba(8, 12, 22, 0.95);
+            border: 1px solid rgba(0, 255, 102, 0.35);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        button {
+            padding: 11px 22px;
+            background: var(--accent-color);
+            color: #050811;
+            border: none;
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: #26ff7e;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 14px 10px 36px; }
+            #game-container { height: 420px; }
+            .top-navbar { flex-wrap: wrap; gap: 10px; }
+            .nav-btn-group { order: -1; align-self: flex-end; }
+            .title-block { order: 0; width: 100%; }
+            .rooms-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="space-canvas"></canvas>
+
+<div class="container">
+
+    <div class="top-navbar">
+        <div class="title-block">
+            <div class="title-line title-line-1">Cyber Escape Room:</div>
+            <div class="title-line title-line-2">Breach Lab<span class="cursor-blink"></span></div>
+        </div>
+        <div class="nav-btn-group">
+            <button class="nav-btn" onclick="openSolutionsModal()">🔑 Çözümler</button>
+            <button class="nav-btn admin-nav-btn" onclick="openAdminModal()">🛡️ Admin Panel</button>
+        </div>
+    </div>
+
+    <!-- OYUN ALANI & KONTROL BAR -->
+    <div class="game-wrapper">
+        <div class="game-bar">
+            <div class="active-player-tag" id="active-player-display">
+                Oyuncu: <span id="current-player-name-text">Giriş Yapılmadı</span>
+            </div>
+            <button id="pause-btn" class="pause-btn" onclick="togglePauseGame()" disabled>⏸️ Durdur</button>
+        </div>
+
+        <div id="game-container">
+            <div id="start-overlay" class="start-overlay">
+                <div class="start-card">
+                    <div class="game-brief-box">
+                        <h4>🎯 OYUN GÖREVİ & AKIŞI</h4>
+                        <p>Bilgisayarlara giderek kanıtları (artifact) toplayın. SOC Analiz Masasında analizlerinizi yaparak kapı kilitlerini açın ve nihai kasaya ulaşın!</p>
+                        <ul>
+                            <li>⚠️ <strong>Önemli:</strong> Gerekli kanıtları toplamadan kapılar açılmaz!</li>
+                            <li>🔍 Bulduğunuz ipuçlarını terminal araçlarıyla analiz edin.</li>
+                        </ul>
+                    </div>
+
+                    <div class="start-input-group">
+                        <input type="text" id="player-name-input" placeholder="Oyuncu Adınızı Giriniz..." maxlength="20" onkeydown="event.stopPropagation()">
+                        <button class="start-btn" onclick="startGame()">🚀 OYUNA BAŞLA</button>
+                    </div>
+                </div>
+            </div>
+
+            <iframe id="unity-iframe" src="about:blank"></iframe>
+        </div>
+    </div>
+
+</div>
+
+<!-- ÇÖZÜMLER MODAL -->
+<div class="modal-overlay" id="solutions-modal" onclick="closeModalOnOverlay(event, 'solutions-modal')">
+    <div class="section-card modal-container">
+        <div class="modal-header">
+            <h2>Tam Çözüm Akışı & Cevaplar</h2>
+            <button class="close-btn" onclick="closeSolutionsModal()">✕</button>
+        </div>
+
+        <!-- ODA KUTUCUKLARI (8 AŞAMA) -->
+        <div class="rooms-grid">
+            <div class="room-box active" onclick="selectRoom(1)">
+                <span class="room-icon">🖥️</span>
+                <span class="room-title">1. SOC Masası</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(2)">
+                <span class="room-icon">🔍</span>
+                <span class="room-title">2. Keşif Odası</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(3)">
+                <span class="room-icon">🌐</span>
+                <span class="room-title">3. Web Analiz</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(4)">
+                <span class="room-icon">💻</span>
+                <span class="room-title">4. Uç Nokta</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(5)">
+                <span class="room-icon">🖥️</span>
+                <span class="room-title">5. Sunucu Odası</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(6)">
+                <span class="room-icon">📡</span>
+                <span class="room-title">6. Ağ Odası</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(7)">
+                <span class="room-icon">🔬</span>
+                <span class="room-title">7. Domain & Adli</span>
+            </div>
+            <div class="room-box" onclick="selectRoom(8)">
+                <span class="room-icon">🔐</span>
+                <span class="room-title">8. Final Kasa</span>
+            </div>
+        </div>
+
+        <!-- ÇÖZÜM İÇERİK KUTUSU -->
+        <div class="solution-content-card" id="solution-display-card">
+            <!-- Dinamik Doldurulacak -->
+        </div>
+    </div>
+</div>
+
+<!-- ADMİN MODAL -->
+<div class="modal-overlay" id="admin-modal" onclick="closeModalOnOverlay(event, 'admin-modal')">
+    <div class="section-card modal-container" style="max-width: 480px;">
+        <div class="modal-header">
+            <h2 style="color: var(--danger-color);">Admin İstatistik Paneli</h2>
+            <button class="close-btn" onclick="closeAdminModal()">✕</button>
+        </div>
+
+        <div id="admin-login-form">
+            <input type="password" id="admin-key" placeholder="Admin Şifresi Giriniz" onkeydown="event.stopPropagation()">
+            <button onclick="loginAdmin()">Giriş</button>
+        </div>
+
+        <div id="admin-panel" style="display: none;">
+            <div class="admin-stat-card">
+                <h3>TOPLAM OYNAYAN OYUNCU SAYISI</h3>
+                <div class="count-number" id="total-player-count">0</div>
+            </div>
+
+            <p style="color: var(--accent-cyan); font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 10px;">
+                Oyunu Oynayan Oyuncular Listesi:
+            </p>
+
+            <div class="player-list-container" id="admin-player-list">
+                <!-- Dinamik Oyuncu İsimleri -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===============================================
+// UZAY ARKA PLAN ANİMASYONU
+// ===============================================
+(function() {
+    const c = document.getElementById('space-canvas');
+    const ctx = c.getContext('2d');
+    let W, H;
+
+    function resize() {
+        W = c.width = window.innerWidth;
+        H = c.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const stars = [];
+    for (let i = 0; i < 250; i++) {
+        stars.push({
+            x: Math.random() * 3000 - 500,
+            y: Math.random() * 3000 - 500,
+            r: Math.random() * 2 + 0.5,
+            baseAlpha: Math.random() * 0.7 + 0.3,
+            twinkleSpeed: Math.random() * 0.02 + 0.008,
+            twinkleOffset: Math.random() * Math.PI * 2
+        });
+    }
+
+    let frame = 0;
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        stars.forEach(s => {
+            const twinkle = Math.sin(frame * s.twinkleSpeed + s.twinkleOffset);
+            const alpha = s.baseAlpha + twinkle * 0.35;
+            ctx.beginPath();
+            ctx.arc(s.x % W, s.y % H, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + Math.max(0.15, alpha) + ')';
+            ctx.fill();
+        });
+        frame++;
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// ===============================================
+// TAM ÇÖZÜM AKIŞI VERİSİ (8 AŞAMA)
+// ===============================================
+const roomSolutionsData = {
+    1: {
+        title: "1. SOC Analiz Masası Başlangıcı",
+        desc: "Oyuncu SOC alanında başlar.",
+        artifact: "vaka_notu.txt / case_note.txt",
+        steps: [
+            { label: "Toplanan Bilgi", value: "Case ID: BR-407" },
+            { label: "Kapı İsteği", value: "Tire işareti olmadan vaka kimliği" }
+        ],
+        gateAnswer: "BR407",
+        unlocks: "Keşif Odası / Recon Room açılır."
+    },
+    2: {
+        title: "2. Keşif Odası / Recon Room",
+        desc: "Oyuncu Keşif Odasından hedef IP adresini elde eder.",
+        artifact: "hedef.txt / target.txt (Target IP: 10.0.0.23)",
+        steps: [
+            { label: "Nmap Komutu", value: "nmap -sV 10.0.0.23 -> 8080/tcp açık (legacy-web)" },
+            { label: "Gobuster Komutu", value: "gobuster dir -u http://10.0.0.23:8080 -w small.txt" },
+            { label: "Bulgu", value: "/debug-config dizini tespit edildi." }
+        ],
+        gateAnswer: "debug-config",
+        unlocks: "Web Analiz Odası / Web Room açılır."
+    },
+    3: {
+        title: "3. Web Analiz Odası / Web Room",
+        desc: "Web kaynak kodları ve token analizi yapılır.",
+        artifact: "app.js, token.jwt (Ana İlerleme: app.js)",
+        steps: [
+            { label: "JS Görüntüleyici", value: "view app.js -> SERVICE_HINT = 'c3ZjX2JhY2t1cA=='" },
+            { label: "Statik Kod Analizi", value: "analyze app.js" },
+            { label: "Decoder Aracı", value: "decode c3ZjX2JhY2t1cA== -> Output: svc_backup" }
+        ],
+        gateAnswer: "svc_backup",
+        unlocks: "Uç Nokta Odası / Endpoint Room açılır."
+    },
+    4: {
+        title: "4. Uç Nokta Odası / Endpoint Room",
+        desc: "Sistem giriş logları ve olay günlüğü incelenir.",
+        artifact: "auth.log, sysmon.log (Ana İlerleme: auth.log)",
+        steps: [
+            { label: "Olay Görüntüleyici", value: "open auth.log" },
+            { label: "Regex Log Filtresi", value: "filter successful login" },
+            { label: "Tespit Edilen Zaman", value: "[03:17] Successful login: svc_backup" }
+        ],
+        gateAnswer: "03:17",
+        unlocks: "Sunucu Odası / Server Room açılır."
+    },
+    5: {
+        title: "5. Sunucu Odası / Server Room",
+        desc: "Zararlı süreçler ve YARA kuralları taranır.",
+        artifact: "process.log, sample.bin, hash.txt",
+        steps: [
+            { label: "Sysmon Görüntüleyici", value: "open process.log -> Child: WinUpdateHelper.exe" },
+            { label: "YARA Tarayıcı", value: "yara scan sample.bin -> Matched: LabLoader_Encoded_PS" },
+            { label: "Execution Marker", value: "PSENC" }
+        ],
+        gateAnswer: "PSENC",
+        unlocks: "Ağ Odası / Network Room açılır."
+    },
+    6: {
+        title: "6. Ağ Odası / Network Room",
+        desc: "Ağ trafiği (pcap) ve C2 bağlantıları analiz edilir.",
+        artifact: "capture.pcap, network.log",
+        steps: [
+            { label: "Wireshark Analiz", value: "open capture.pcap -> Hedef IP: 185.44.12.8" },
+            { label: "Regex Log Filtresi", value: "filter 185 -> 185.44.12.8" },
+            { label: "Format Kuralı", value: "İlk iki oktet noktasız yazılır (185.44 -> 18544)" }
+        ],
+        gateAnswer: "18544",
+        unlocks: "Domain ve Adli Analiz Odası açılır."
+    },
+    7: {
+        title: "7. Domain & Adli Analiz Odası",
+        desc: "Servis olayları ve RAM bellek dumpı incelenir.",
+        artifact: "service_event.log, memory.dmp",
+        steps: [
+            { label: "Olay Görüntüleyici", value: "open service_event.log (Event ID 7045)" },
+            { label: "Volatility Mini", value: "open memory.dmp -> Suspicious: WinUpdateHelper.exe" },
+            { label: "SIEM Paneli", value: "search service:winupdatehelper" }
+        ],
+        gateAnswer: "WinUpdateHelper",
+        unlocks: "Final Kasa / Final Vault açılır."
+    },
+    8: {
+        title: "8. Final Kasa / Final Vault",
+        desc: "Elde edilen tüm ana parçalar birleştirilerek kilit açılır.",
+        artifact: "Toplanan Parçalar: BR407 + svc_backup + 18544",
+        steps: [
+            { label: "Anahtar Formatı", value: "BR407-SVC-18544" },
+            { label: "Kasa Mesajı", value: "ERİŞİM VERİLDİ - İhlal Laboratuvarından kaçtın!" }
+        ],
+        gateAnswer: "BR407-SVC-18544",
+        unlocks: "🎉 TEBRİKLER! OYUN TAMAMLANDI."
+    }
+};
+
+function selectRoom(roomId) {
+    const boxes = document.querySelectorAll('.room-box');
+    boxes.forEach((box, index) => {
+        if (index === roomId - 1) box.classList.add('active');
+        else box.classList.remove('active');
+    });
+
+    const data = roomSolutionsData[roomId];
+    const displayCard = document.getElementById('solution-display-card');
+
+    let rowsHtml = '';
+    data.steps.forEach(s => {
+        rowsHtml += `
+            <div class="solution-detail-row">
+                <strong>${s.label}:</strong>
+                <code>${s.value}</code>
+            </div>
+        `;
+    });
+
+    displayCard.innerHTML = `
+        <h3>${data.title}</h3>
+        <p class="step-desc">${data.desc}</p>
+        <div class="solution-detail-row">
+            <strong>Kullanılan Kanıt (Artifact):</strong>
+            <code>${data.artifact}</code>
+        </div>
+        ${rowsHtml}
+        <div class="answer-badge">
+            🔑 Kapı / Kilit Cevabı: ${data.gateAnswer}
+        </div>
+        <p style="margin-top: 10px; font-size: 0.8rem; color: var(--accent-cyan);">➡️ ${data.unlocks}</p>
+    `;
+}
+
+function openSolutionsModal() {
+    document.getElementById('solutions-modal').classList.add('active');
+    selectRoom(1);
+}
+function closeSolutionsModal() {
+    document.getElementById('solutions-modal').classList.remove('active');
+}
+
+// ===============================================
+// OYUN BAŞLATMA & DURAKLATMA KONTROLÜ
+// ===============================================
+let currentPlayerName = '';
+let isGamePaused = false;
+
+function startGame() {
+    const inputEl = document.getElementById('player-name-input');
+    const nameInput = inputEl.value.trim().replace(/[^a-zA-Z0-9_ -]/g, '');
+    
+    if (!nameInput) {
+        alert('Lütfen geçerli bir oyuncu adı giriniz!');
+        return;
+    }
+
+    currentPlayerName = nameInput;
+    document.getElementById('current-player-name-text').textContent = currentPlayerName;
+
+    document.getElementById('start-overlay').classList.add('hidden');
+    document.getElementById('unity-iframe').src = 'game.html';
+    
+    document.getElementById('pause-btn').disabled = false;
+
+    registerPlayerInDatabase(currentPlayerName);
+}
+
+function togglePauseGame() {
+    isGamePaused = !isGamePaused;
+    const pauseBtn = document.getElementById('pause-btn');
+    
+    if (isGamePaused) {
+        pauseBtn.textContent = '▶️ Devam Et';
+        pauseBtn.style.borderColor = 'var(--accent-color)';
+        pauseBtn.style.color = 'var(--accent-color)';
+    } else {
+        pauseBtn.textContent = '⏸️ Durdur';
+        pauseBtn.style.borderColor = 'var(--warning-color)';
+        pauseBtn.style.color = 'var(--warning-color)';
+    }
+
+    const iframe = document.getElementById('unity-iframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'TOGGLE_PAUSE', paused: isGamePaused }, '*');
+    }
+}
+
+// ===============================================
+// ADMİN & SUPABASE
+// ===============================================
+const SUPABASE_URL = "https://omwoyrxyeuaqzwbtwhmk.supabase.co"; 
+const SUPABASE_ANON_KEY = "sb_publishable_0FRgjD5JWLL93Roaj13HOg_22TXEhYt";
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function openAdminModal() {
+    document.getElementById('admin-modal').classList.add('active');
+}
+function closeAdminModal() {
+    document.getElementById('admin-modal').classList.remove('active');
+}
+function closeModalOnOverlay(e, modalId) {
+    if (e.target === document.getElementById(modalId)) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+}
+
+async function registerPlayerInDatabase(name) {
+    await db.from('scores').insert([
+        {
+            player_name: name,
+            completion_time: 0,
+            detection_level: 0
+        }
+    ]);
+}
+
+async function loginAdmin() {
+    const keyInput = document.getElementById('admin-key').value.trim();
+    if (!keyInput) {
+        alert('Lütfen şifre giriniz.');
+        return;
+    }
+
+    // Doğrulama tamamen Supabase sunucusundaki 'check_admin_pass' fonksiyonunda yapılır
+    const { data: isCorrect, error: rpcError } = await db.rpc('check_admin_pass', { 
+        input_pass: keyInput 
+    });
+
+    if (rpcError) {
+        alert('Sunucu doğrulama hatası! 1. Adımdaki SQL komutunu Supabase SQL Editor\'de çalıştırdığınızdan emin olun.');
+        console.error(rpcError);
+        return;
+    }
+
+    if (isCorrect === true) {
+        // Şifre doğruysa oyuncu listesini Supabase'den çek
+        const { data, error } = await db.from('scores').select('player_name');
+        
+        if (!error && data) {
+            document.getElementById('admin-login-form').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+
+            document.getElementById('total-player-count').textContent = data.length;
+
+            const listContainer = document.getElementById('admin-player-list');
+            listContainer.innerHTML = '';
+
+            if (data.length === 0) {
+                const emptyP = document.createElement('p');
+                emptyP.textContent = 'Henüz oynayan oyuncu bulunmuyor.';
+                emptyP.style.color = 'var(--text-muted)';
+                listContainer.appendChild(emptyP);
+            } else {
+                data.forEach(player => {
+                    const item = document.createElement('div');
+                    item.className = 'player-item';
+                    item.textContent = player.player_name || 'Anonim Oyuncu';
+                    listContainer.appendChild(item);
+                });
+            }
+        } else {
+            alert('Supabase veri çekme hatası! SELECT izni aktif mi kontrol edin.');
+        }
+    } else {
+        alert('Hatalı Admin Şifresi! Erişim Reddedildi.');
+    }
+}
+</script>
+
+</body>
+</html>
