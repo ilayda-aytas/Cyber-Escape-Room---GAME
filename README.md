@@ -14,6 +14,19 @@ Breach Lab is a gamified cybersecurity training simulation where players take on
 
 ---
 
+## Game Flow & Investigation Stages
+
+The escape room is structured into 8 progressive security segments. Players must navigate through each area, retrieve digital artifacts, and solve domain-specific incident response tasks at the SOC Analysis Desk to obtain gate credentials:
+
+1. **SOC Station:** Initial incident triage and case note review.
+2. **Recon Room:** Asset discovery, target system identification, and port scanning.
+3. **Web Analysis:** Web server log auditing, directory enumeration, and web threat investigation.
+4. **Endpoint Security:** Host-based forensic analysis, YARA scanning, and process inspection.
+5. **Server Room:** System event log analysis and unauthorized access tracking.
+6. **Network Room:** Network packet capture (PCAP) inspection and C2 server detection.
+7. **Domain & Forensics:** Memory dump analysis, credential hash extraction, and domain artifact review.
+8. **Final Vault:** Key validation and final system unlock to escape the facility.
+
 ## Game Gameplay & Interface
 
 The game combines a 2D WebGL top-down exploration view with an interactive web overlay for evidence investigation and command-line style analysis tools.
