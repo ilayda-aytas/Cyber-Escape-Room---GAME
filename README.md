@@ -22,11 +22,11 @@ The game combines a 2D WebGL top-down exploration view with an interactive web o
 
 | Main Portal & Setup | 2D Environment |
 | :---: | :---: |
-| ![Main Portal](screenshots/landing_page.png) | ![2D Room View](screenshots/gameplay_overview.png) |
+| <img width="1590" height="868" alt="1" src="https://github.com/user-attachments/assets/2f531cd3-ab82-4c4a-a521-dc56773d70bd" /> | ![Uploading 2.png…]() |
 
 | Artifact Collection | Security Gate Access |
 | :---: | :---: |
-| ![Artifact Details](screenshots/artifact_inspection.png) | ![Gate Access](screenshots/gate_verification.png) |
+| <img width="1228" height="807" alt="3" src="https://github.com/user-attachments/assets/7566f5e4-b106-4142-9f4e-d6e92beadef1" /> | <img width="1239" height="585" alt="4" src="https://github.com/user-attachments/assets/c0f9a06b-d89f-4b3c-8f89-4c873b8cecbe" /> |
 
 | SOC Analysis Desk | Final Vault Access |
 | :---: | :---: |
