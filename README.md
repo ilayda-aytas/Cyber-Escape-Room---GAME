@@ -28,11 +28,12 @@ The game combines a 2D WebGL top-down exploration view with an interactive web o
 | :---: | :---: |
 | ![Artifact Details](screenshots/artifact_inspection.png) | ![Gate Access](screenshots/gate_verification.png) |
 
-| SOC Analysis Desk | 
-|(<img width="1229" height="609" alt="SOC masası" src="https://github.com/user-attachments/assets/2eb30797-4038-4e41-9e5e-2bdef34bfef8" />
-)
-Final Vault Access |
-![Vault Unlocked](screenshots/completion_screen.png) |
+| SOC Analysis Desk | Final Vault Access |
+| :---: | :---: |
+|!(<img width="1229" height="609" alt="SOC masası" src="https://github.com/user-attachments/assets/2eb30797-4038-4e41-9e5e-2bdef34bfef8" />
+) | (<img width="1249" height="611" alt="final" src="https://github.com/user-attachments/assets/eb5d6477-36d7-423e-8d40-4d2a222fd9ac" />)
+
+
 
 ---
 
