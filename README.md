@@ -22,7 +22,8 @@ The game combines a 2D WebGL top-down exploration view with an interactive web o
 
 | Main Portal & Setup | 2D Environment |
 | :---: | :---: |
-| <img width="1590" height="868" alt="1" src="https://github.com/user-attachments/assets/2f531cd3-ab82-4c4a-a521-dc56773d70bd" /> | ![Uploading 2.png…]() |
+| <img width="1590" height="868" alt="1" src="https://github.com/user-attachments/assets/2f531cd3-ab82-4c4a-a521-dc56773d70bd" /> | <img width="1244" height="805" alt="2" src="https://github.com/user-attachments/assets/54d03257-b9e0-4b9c-9527-b6454e7ac5b5" /> |
+
 
 | Artifact Collection | Security Gate Access |
 | :---: | :---: |
