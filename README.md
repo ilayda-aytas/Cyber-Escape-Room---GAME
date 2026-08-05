@@ -62,7 +62,7 @@ python -m http.server 8000
 
 Then open http://localhost:8000 in your web browser.
 
-### Supabase Database Setup
+## Supabase Database Setup
 To configure the backend database for player logging and secure admin authentication, execute the following SQL script in your Supabase SQL Editor:
 
 -- 1. Create Scores Table
