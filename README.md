@@ -1,6 +1,6 @@
 # Cyber Escape Room: Breach Lab
 
-An interactive, browser-based cybersecurity escape room game built with Unity WebGL, custom HTML5/CSS3/JavaScript UI, and Supabase backend. Hosted on Netlify.
+An interactive, browser-based 2D cybersecurity escape room game built with Unity WebGL, custom HTML5/CSS3/JavaScript UI, and Supabase backend. Hosted on Netlify.
 
 ## Live Demo
 
@@ -10,23 +10,33 @@ Play Online: https://cyber-escape-room-game.netlify.app/
 
 ## Overview
 
-Breach Lab is a gamified cybersecurity training simulation where players take on the role of a SOC Analyst trapped in a compromised facility. To escape, players must explore 3D security zones, gather digital evidence (artifacts), analyze them using an integrated suite of simulated cybersecurity tools, and unlock access gates by solving realistic incident response challenges.
+Breach Lab is a gamified cybersecurity training simulation where players take on the role of a SOC Analyst trapped in a compromised facility. To escape, players must explore 2D security zones, gather digital evidence (artifacts), analyze them using an integrated suite of simulated cybersecurity tools, and unlock access gates by solving realistic incident response challenges.
 
 ---
 
 ## Game Gameplay & Interface
 
-The game combines a 3D WebGL top-down exploration view with an interactive web overlay for evidence investigation and command-line style analysis tools.
+The game combines a 2D WebGL top-down exploration view with an interactive web overlay for evidence investigation and command-line style analysis tools.
 
 ### Screenshots
 
-*(Görsellerini eklemek için bilgisayarındaki resimleri buraya sürükleyip bırakabilirsin)*
+| Main Portal & Setup | 2D Environment |
+| :---: | :---: |
+| ![Main Portal](screenshots/landing_page.png) | ![2D Room View](screenshots/gameplay_overview.png) |
+
+| Artifact Collection | Security Gate Access |
+| :---: | :---: |
+| ![Artifact Details](screenshots/artifact_inspection.png) | ![Gate Access](screenshots/gate_verification.png) |
+
+| SOC Analysis Desk | Final Vault Access |
+| :---: | :---: |
+| ![SOC Desk Tools](screenshots/soc_analysis_desk.png) | ![Vault Unlocked](screenshots/completion_screen.png) |
 
 ---
 
 ## Core Features
 
-- **Interactive 3D WebGL Exploration:** Walk through distinct security segments, interact with terminals, and retrieve compromised log files or artifacts.
+- **Interactive 2D WebGL Exploration:** Walk through distinct security segments, interact with terminals, and retrieve compromised log files or artifacts.
 - **Simulated Cybersecurity Toolset:** Perform analysis using simulated security tools directly from the SOC Analysis Desk:
   - Web & Recon: Nmap, Gobuster, Burp Repeater
   - Authentication & Code: JWT Analyzer, Decoder, JS Viewer, Regex Filter
@@ -39,7 +49,7 @@ The game combines a 3D WebGL top-down exploration view with an interactive web o
 
 ## Tech Stack
 
-- **Game Engine:** Unity (WebGL Build, C#)
+- **Game Engine:** Unity (WebGL 2D Build, C#)
 - **Frontend UI:** HTML5, CSS3, JavaScript (ES6+, WebAssembly loader, PostMessage API bridge)
 - **Backend & Database:** Supabase (PostgreSQL, Row Level Security, Stored Procedures)
 - **Hosting & Deployment:** Netlify (Configured with custom MIME headers for Brotli compression)
@@ -57,7 +67,9 @@ Due to WebAssembly loading restrictions and browser CORS policies, the project m
 
 ### Option 2: Python HTTP Server
 Run the following command in the project root directory:
-`python -m http.server 8000`
+```bash
+python -m http.server 8000
+```
 Then open `http://localhost:8000` in your web browser.
 
 ---
@@ -88,4 +100,11 @@ CREATE OR REPLACE FUNCTION check_admin_pass(input_pass text)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $$ BEGIN     RETURN input_pass = 'YOUR_ADMIN_PASSWORD_HERE'; END; $$;
+AS $$
+BEGIN
+    RETURN input_pass = 'YOUR_ADMIN_PASSWORD_HERE';
+END;
+$$;
+```
+
+---
